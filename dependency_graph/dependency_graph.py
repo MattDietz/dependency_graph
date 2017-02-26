@@ -25,6 +25,9 @@ class Node(object):
     def add_dependency(self, node):
         self._depends_on.add(node)
 
+    def get_dependencies(self):
+        return self._depends_on
+
     def depends_on(self, node):
         return node in self._depends_on
 
@@ -46,9 +49,9 @@ class Node(object):
         return self.name
 
     def __lt__(self, other):
-        if self.depends_on(other):
-            return True
-        return False
+        if self == other:
+            return False
+        return self.depends_on(other)
 
 
 class Edge(object):
@@ -173,11 +176,18 @@ class DirectedGraph(object):
         return self.paths
 
     def create_plan(self):
-        # Root nodes will only be in one path
-        # Leaf nodes will only be leaf nodes, can be in any path
-        # Branch nodes can appear in the middle of any path
+        # It's not strictly sufficient to sort these by
+        # dependency ordering. You actually have to compare each node
+        # to each node, i.e. do NOT switch this to sorted(...)
         self.find_paths()
-        return sorted(self.nodes.values())
+        nodes = list(self.nodes.values())
+        for i, x in enumerate(nodes):
+            for j, y in enumerate(nodes):
+                if i == j:
+                    continue
+                if i < j and y < x:
+                    nodes[i], nodes[j] = nodes[j], nodes[i]
+        return reversed(nodes)
 
 
 def example():
