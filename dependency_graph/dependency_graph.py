@@ -31,6 +31,9 @@ class Node(object):
     def depends_on(self, node):
         return node in self._depends_on
 
+    def is_dependency_for(self, node):
+        return node.depends_on(self)
+
     def repath(self):
         # TODO Recache all incoming and outgoing references after an
         #      edge is removed
@@ -52,6 +55,11 @@ class Node(object):
         if self == other:
             return False
         return self.depends_on(other)
+
+    def __gt__(self, other):
+        if self == other:
+            return False
+        return self.is_dependency_for(other)
 
 
 class Edge(object):
@@ -181,13 +189,22 @@ class DirectedGraph(object):
         # to each node, i.e. do NOT switch this to sorted(...)
         self.find_paths()
         nodes = list(self.nodes.values())
-        for i, x in enumerate(nodes):
-            for j, y in enumerate(nodes):
-                if i == j:
-                    continue
-                if i < j and y < x:
-                    nodes[i], nodes[j] = nodes[j], nodes[i]
-        return reversed(nodes)
+        nodes_to_insert = nodes.copy()
+        index_of_node = -1
+        for node in nodes_to_insert:
+            highest_idx = 0
+            for i in range(len(nodes)):
+                if node == nodes[i]:
+                    index_of_node = i
+                if node < nodes[i]:
+                    if i > highest_idx:
+                        highest_idx = i
+
+            if highest_idx + 1 > index_of_node:
+                nodes.insert(highest_idx + 1, node)
+                nodes.remove(node)
+        return nodes
+
 
 
 def example():
