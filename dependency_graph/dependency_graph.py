@@ -187,6 +187,10 @@ class DirectedGraph(object):
         # It's not strictly sufficient to sort these by
         # dependency ordering. You actually have to compare each node
         # to each node, i.e. do NOT switch this to sorted(...)
+        # I entertained trying to merge the paths together, but I think
+        # this is actually more efficient. You really only look at each
+        # node once, whereas with the paths there's really nothing stopping
+        # any given node from being in *every* valid path
         self.find_paths()
         nodes = list(self.nodes.values())
         nodes_to_insert = nodes.copy()
